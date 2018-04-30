@@ -55,11 +55,13 @@ class VideoLooper(object):
         pygame.display.init()
         pygame.font.init()
         
-        self._small_font = pygame.font.Font(None, 50)
+        self._small_font = pygame.font.Font(None, 20)
         self._big_font   = pygame.font.Font(None, 250)
         
+        
+        
         if self._debug_enabled:
-            size = (pygame.display.Info().current_w - 200, pygame.display.Info().current_h - 200)
+            size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
             self._screen = pygame.display.set_mode(size, pygame.RESIZABLE)
             self._debug('Debug enabled')
         else:
@@ -67,8 +69,8 @@ class VideoLooper(object):
             size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
             self._screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
             
-            
-        self._blank_screen()
+        self._blank_screen()   
+        
                 
         self._serial = serial.Serial('/dev/ttyACM0',9600)
         self._running    = True
@@ -77,11 +79,11 @@ class VideoLooper(object):
     
     def _debug(self, message):
         if self._debug: 
-            self._print(message)
+            self._print_console(message)
             self._print_text(message)
         
 
-    def _print(self, message):
+    def _print_console(self, message):
         """Print message to standard output if console output is enabled."""
         if self._console_output:
             print(message)
@@ -91,31 +93,31 @@ class VideoLooper(object):
         self._screen.fill(self._bgcolor)
         pygame.display.update()
 
-    def _render_text(self, message, font=None):
-        """Draw the provided message and return as pygame surface of it rendered
-        with the configured foreground and background color.
-        """
-        # Default to small font if not provided.
-        if font is None:
-            font = self._small_font
-        return font.render(message, True, self._fgcolor, self._bgcolor)
+   
     
-    def _print_text(self, message, font=None):
-        if font is None:
-            font = self._small_font
-        text = font.render(message, True, self._fgcolor, self._bgcolor)
+    def _print_text(self, message):
+        self._blank_screen()
+        text = self._small_font.render(message, 1, (255,255,255))
+        #textpos = text.get_rect()
+        #textpos.centerx = self._screen.get_rect().centerx
         self._screen.blit(text, (10,10))
+        pygame.display.update()
     
    
 
     
     def run(self):
         """Main program loop.  Will never return!"""
+        
+        self._print_text('Video Trigger v1')
+        
+        
+        
         while self._running:
             # Listen to an arduino command and act accordingly
             if (self._serial.inWaiting()>0): #if incoming bytes are waiting to be read from the serial input buffer
                 command = str(self._serial.readline())
-                self._debug('Serial command received : ' + command.strip())
+                #self._debug('Serial command received : ' + command.strip())
                 
                 if "play" in command :
                     # kill previous process
@@ -135,6 +137,9 @@ class VideoLooper(object):
                         #args = ['omxplayer']
                         args.append(file)          
                         self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                    else:
+                        self._debug('File not found ' + file)
+                        time.sleep(1)
                     
                     
                 if "stop" in command :
