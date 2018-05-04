@@ -51,16 +51,16 @@ class VideoTrigger(object):
         self._fgcolor = map(int, self._config.get('video_trigger', 'fgcolor') \
                                              .translate(None, ',') \
                                              .split())
-
         
-        if self._debug_enabled:
-            size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-            self._screen = pygame.display.set_mode(size, pygame.RESIZABLE)
-            self._debug('Debug enabled')
-        else:
-            pygame.mouse.set_visible(False)
-            size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        
+        
+        pygame.mouse.set_visible(False)
+        size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        
+        if self._config.getboolean('video_trigger', 'full_screen'):
             self._screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+        else:
+            self._screen = pygame.display.set_mode(size, pygame.RESIZABLE)
             
         self._blank_screen()   
                 
