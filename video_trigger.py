@@ -78,7 +78,7 @@ class VideoLooper(object):
         
     
     def _debug(self, message):
-        if self._debug: 
+        if self._debug_enabled: 
             self._print_console(message)
             self._print_text(message)
         
@@ -110,7 +110,8 @@ class VideoLooper(object):
         """Main program loop.  Will never return!"""
         
         self._print_text('Video Trigger v1')
-        
+        time.sleep(1)
+        self._blank_screen()
         
         
         while self._running:
