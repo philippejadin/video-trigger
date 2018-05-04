@@ -1,5 +1,5 @@
 # Copyright 2018 Philippe Jadin
-# Inspired by adafruit video looper :
+# Inspired by adafruit video trigger :
 # Copyright 2015 Adafruit Industries.
 # Author: Tony DiCola
 # License: GNU GPLv2, see LICENSE.txt
@@ -20,36 +20,23 @@ import pygame
 
 # - Added a slave mode where video are being started from an arduino using serial
 
-class VideoLooper(object):
+class VideoTrigger(object):
 
     def __init__(self, config_path):
-        """Create an instance of the main video looper application class. Must
-        pass path to a valid video looper ini configuration file.
+        """Create an instance of the main video trigger application class. Must
+        pass path to a valid video trigger ini configuration file.
         """
         # Load the configuration.
         self._config = ConfigParser.SafeConfigParser()
         if len(self._config.read(config_path)) == 0:
             raise RuntimeError('Failed to find configuration file at {0}, is the application properly installed?'.format(config_path))
-        self._console_output = self._config.getboolean('video_looper', 'console_output')
+        self._console_output = self._config.getboolean('video_trigger', 'console_output')
  
- 
- 
- 
-        self._debug_enabled = self._config.getboolean('video_looper', 'debug')
-        
-                
+        self._debug_enabled = self._config.getboolean('video_trigger', 'debug')
+              
         self._process = False
         
-        self._keyboard_control = self._config.getboolean('video_looper', 'keyboard_control')
-        # Parse string of 3 comma separated values like "255, 255, 255" into 
-        # list of ints for colors.
-        self._bgcolor = map(int, self._config.get('video_looper', 'bgcolor') \
-                                             .translate(None, ',') \
-                                             .split())
-        self._fgcolor = map(int, self._config.get('video_looper', 'fgcolor') \
-                                             .translate(None, ',') \
-                                             .split())
-	
+        self._keyboard_control = self._config.getboolean('video_trigger', 'keyboard_control')
         
         # Initialize pygame and display a blank screen.
         pygame.display.init()
@@ -58,7 +45,13 @@ class VideoLooper(object):
         self._small_font = pygame.font.Font(None, 20)
         self._big_font   = pygame.font.Font(None, 250)
         
-        
+        self._bgcolor = map(int, self._config.get('video_trigger', 'bgcolor') \
+                                             .translate(None, ',') \
+                                             .split())
+        self._fgcolor = map(int, self._config.get('video_trigger', 'fgcolor') \
+                                             .translate(None, ',') \
+                                             .split())
+
         
         if self._debug_enabled:
             size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
@@ -70,10 +63,9 @@ class VideoLooper(object):
             self._screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
             
         self._blank_screen()   
-        
                 
         self._serial = serial.Serial('/dev/ttyACM0',9600)
-        self._running    = True
+        self._running  = True
        
         
     
@@ -118,7 +110,7 @@ class VideoLooper(object):
             # Listen to an arduino command and act accordingly
             if (self._serial.inWaiting()>0): #if incoming bytes are waiting to be read from the serial input buffer
                 command = str(self._serial.readline())
-                #self._debug('Serial command received : ' + command.strip())
+                self._debug('Serial command received : ' + command.strip())
                 
                 if "play" in command :
                     # kill previous process
@@ -173,17 +165,17 @@ class VideoLooper(object):
 
 # Main entry point.
 if __name__ == '__main__':
-    print('Starting Video Looper.')
+    print('Starting Video Trigger.')
     # Default config path to /boot.
-    config_path = '/boot/video_looper.ini'
+    config_path = '/boot/video_trigger.ini'
     # Override config path if provided as parameter.
     if len(sys.argv) == 2:
         config_path = sys.argv[1]
-    # Create video looper.
-    videolooper = VideoLooper(config_path)
+    # Create video trigger.
+    videotrigger = VideoTrigger(config_path)
     # Configure signal handlers to quit on TERM or INT signal.
-    signal.signal(signal.SIGTERM, videolooper.signal_quit)
-    signal.signal(signal.SIGINT, videolooper.signal_quit)
+    signal.signal(signal.SIGTERM, videotrigger.signal_quit)
+    signal.signal(signal.SIGINT, videotrigger.signal_quit)
     # Run the main loop.
-    videolooper.run()
+    videotrigger.run()
     
