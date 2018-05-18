@@ -36,6 +36,8 @@ class VideoTrigger(object):
               
         self._process = False
         self._running = False
+        self._is_playing = False
+        self._is_showing = False
         self._text_pos = 20
         
         self._keyboard_control = self._config.getboolean('video_trigger', 'keyboard_control')
@@ -96,10 +98,7 @@ class VideoTrigger(object):
    
     
     def _print_text(self, message):
-        #self._blank_screen()
         text = self._small_font.render(message, 1, (255,255,255))
-        #textpos = text.get_rect()
-        #textpos.centerx = self._screen.get_rect().centerx
         w,h = self._screen.get_size()
         self._text_pos = self._text_pos + 20
         if (self._text_pos > h):
@@ -108,6 +107,17 @@ class VideoTrigger(object):
         self._screen.blit(text, (20,self._text_pos))
         pygame.display.update()
     
+    def _stop(self):
+        if self._is_playing :
+            subprocess.call(['pkill', '-9', 'omxplayer'])
+        self.is_playing = False
+        
+        #if self._is_showing :
+            #self._screen.fill(self._bgcolor)
+            #pygame.display.update()
+        
+        #self._is_showing = False
+            
    
 
     
@@ -123,10 +133,11 @@ class VideoTrigger(object):
                 self._debug('Serial command received : ' + command.strip())
                 
                 if "play" in command :
+                    
                     # kill previous process
-                    if self._process :
-                        self._process.terminate()
-                        subprocess.call(['pkill', '-9', 'omxplayer'])
+                    self._stop()
+                    
+                    
                     # get filename
                     items = command.split(" ")
                     # check the file exists and play it else error
@@ -134,6 +145,8 @@ class VideoTrigger(object):
                     file = file.strip()
                     
                     self._debug('Playing : ' + file)
+                    
+                    self._is_playing = True
                     
                     if (os.path.isfile(file)):
                         #args = ['hello_video.bin']
@@ -146,15 +159,17 @@ class VideoTrigger(object):
                         args.append('--no-osd')
                         args.append(file)
                         self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                        
+                        self._is_playing = True
                     else:
                         self._debug('File not found ' + file)
                         time.sleep(1)
                         
                 if "loop" in command :
-                    # kill previous process
-                    if self._process :
-                        self._process.terminate()
-                        subprocess.call(['pkill', '-9', 'omxplayer'])
+                    self._stop()
+                
+                    
+                    
                     # get filename
                     items = command.split(" ")
                     # check the file exists and play it else error
@@ -164,18 +179,21 @@ class VideoTrigger(object):
                     self._debug('Playing : ' + file)
                     
                     if (os.path.isfile(file)):
-                        #args = ['hello_video.bin']
-                        args = ['omxplayer']
-                        args.extend(['--audio_fifo', '0'])
-                        args.extend(['--video_fifo', '0'])
-                        args.extend(['--audio_queue', '0.4'])
-                        args.extend(['--video_queue', '0.4'])
-                        args.extend(['--threshold', '0'])
-                        args.append('--no-osd')
+                        args = ['hello_video.bin']
+                        
+                        #args = ['omxplayer']
+                        #args.extend(['--audio_fifo', '0'])
+                        #args.extend(['--video_fifo', '0'])
+                        #args.extend(['--audio_queue', '0.4'])
+                        #args.extend(['--video_queue', '0.4'])
+                        #args.extend(['--threshold', '0'])
+                        #args.append('--no-osd')
                         args.append("--loop")
                         args.append(file)
                         
                         self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                        
+                        self._is_playing = True
                     else:
                         self._debug('File not found ' + file)
                         time.sleep(1)
@@ -183,8 +201,29 @@ class VideoTrigger(object):
                     
                 if "stop" in command :
                     self._debug('Stoping')
-                    self._process.terminate()
-                    subprocess.call(['pkill', '-9', 'omxplayer'])
+                    self._stop()
+                    
+                if "image" in command :
+                    if self._is_showing :
+                        subprocess.call(['pkill', '-9', 'omxplayer'])
+                        self.is_playing = False
+                    
+                    # get filename
+                    items = command.split(" ")
+                    # check the file exists and play it else error
+                    file = "/home/pi/" + items[1]
+                    file = file.strip()
+                    
+                    self._debug('Showing : ' + file)
+                    
+                    if (os.path.isfile(file)):
+                        image = pygame.image.load(file)
+                        self._screen.blit(image, (0,0))
+                        pygame.display.update()
+                        self._is_showing = True
+                    else:
+                        self._debug('File not found ' + file)
+                        time.sleep(1)
                     
             
             # Event handling for key press, if keyboard control is enabled
