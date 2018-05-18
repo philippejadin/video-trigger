@@ -110,6 +110,10 @@ class VideoTrigger(object):
     def _stop(self):
         if self._is_playing :
             subprocess.call(['pkill', '-9', 'omxplayer'])
+        
+        if self._process :
+                        self._process.terminate()
+                        
         self.is_playing = False
         
         #if self._is_showing :
@@ -134,9 +138,16 @@ class VideoTrigger(object):
                 
                 if "play" in command :
                     
+                    # En fonction de l'extension du fichier, si mp4 utiliser omxplayer,
+                    # si h264 utiliser hello video
+                    # si wav lancer le son
+                    # si png afficher l'image
+                    
+                    # tester synchro video et son et vitesse lecture simulatnée depuis clé usb
+                    
+                    
                     # kill previous process
                     self._stop()
-                    
                     
                     # get filename
                     items = command.split(" ")
@@ -149,14 +160,14 @@ class VideoTrigger(object):
                     self._is_playing = True
                     
                     if (os.path.isfile(file)):
-                        #args = ['hello_video.bin']
-                        args = ['omxplayer']
-                        args.extend(['--audio_fifo', '0'])
-                        args.extend(['--video_fifo', '0'])
-                        args.extend(['--audio_queue', '0.4'])
-                        args.extend(['--video_queue', '0.4'])
-                        args.extend(['--threshold', '0'])
-                        args.append('--no-osd')
+                        args = ['hello_video.bin']
+                        #args = ['omxplayer']
+                        #args.extend(['--audio_fifo', '0'])
+                        #args.extend(['--video_fifo', '0'])
+                        #args.extend(['--audio_queue', '0.4'])
+                        #args.extend(['--video_queue', '0.4'])
+                        #args.extend(['--threshold', '0'])
+                        #args.append('--no-osd')
                         args.append(file)
                         self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
                         
