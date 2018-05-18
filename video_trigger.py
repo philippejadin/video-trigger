@@ -1,8 +1,8 @@
 # Copyright 2018 Philippe Jadin
-# Inspired by adafruit video trigger :
+# Inspired by adafruit video_looper :
 # Copyright 2015 Adafruit Industries.
 # Author: Tony DiCola
-# License: GNU GPLv2, see LICENSE.txt
+# License: GNU GPLv3, see LICENSE.txt
 
 
 import ConfigParser
@@ -35,6 +35,8 @@ class VideoTrigger(object):
         self._debug_enabled = self._config.getboolean('video_trigger', 'debug')
               
         self._process = False
+        self._running = False
+        self._text_pos = 20
         
         self._keyboard_control = self._config.getboolean('video_trigger', 'keyboard_control')
         
@@ -63,8 +65,14 @@ class VideoTrigger(object):
             self._screen = pygame.display.set_mode(size, pygame.RESIZABLE)
             
         self._blank_screen()   
-                
-        self._serial = serial.Serial('/dev/ttyACM0',9600)
+        
+        try:
+            self._serial = serial.Serial('/dev/ttyACM0',9600)
+        except:
+            self._print_text('ERROR : Cannot open serial line')
+            time.sleep(5)
+            self.quit()
+        
         self._running  = True
        
         
@@ -88,11 +96,16 @@ class VideoTrigger(object):
    
     
     def _print_text(self, message):
-        self._blank_screen()
+        #self._blank_screen()
         text = self._small_font.render(message, 1, (255,255,255))
         #textpos = text.get_rect()
         #textpos.centerx = self._screen.get_rect().centerx
-        self._screen.blit(text, (10,10))
+        w,h = self._screen.get_size()
+        self._text_pos = self._text_pos + 20
+        if (self._text_pos > h):
+            self._text_pos = 20
+            
+        self._screen.blit(text, (20,self._text_pos))
         pygame.display.update()
     
    
@@ -100,10 +113,7 @@ class VideoTrigger(object):
     
     def run(self):
         """Main program loop.  Will never return!"""
-        
-        self._print_text('Video Trigger v1')
-        time.sleep(1)
-        self._blank_screen()
+        self._debug('Video Trigger v1')
         
         
         while self._running:
@@ -126,9 +136,37 @@ class VideoTrigger(object):
                     self._debug('Playing : ' + file)
                     
                     if (os.path.isfile(file)):
-                        args = ['hello_video.bin']
-                        #args = ['omxplayer']
-                        args.append(file)          
+                        #args = ['hello_video.bin']
+                        args = ['omxplayer']
+                        args.append(file)
+                        args.append('--audio_fifo 0 --video_fifo 0 --audio_queue 0.4 --video_queue 0.4 --no-osd')
+                        self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                    else:
+                        self._debug('File not found ' + file)
+                        time.sleep(1)
+                        
+                if "loop" in command :
+                    # kill previous process
+                    if self._process :
+                        self._process.terminate()
+                        subprocess.call(['pkill', '-9', 'omxplayer'])
+                    # get filename
+                    items = command.split(" ")
+                    # check the file exists and play it else error
+                    file = "/home/pi/" + items[1]
+                    file = file.strip()
+                    
+                    self._debug('Playing : ' + file)
+                    
+                    if (os.path.isfile(file)):
+                        #args = ['hello_video.bin']
+                        args = ['omxplayer']
+                        args.extend(['--audio_fifo', '0'])
+                        args.extend(['--video_fifo', '0'])
+                        #--video_fifo 0 --audio_queue 0.4 --video_queue 0.4 --no-osd")
+                        args.append("--loop")
+                        args.append(file)
+                        
                         self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
                     else:
                         self._debug('File not found ' + file)
@@ -154,7 +192,7 @@ class VideoTrigger(object):
     def quit(self):
         """Shut down the program"""
         self._running = False
-        if self._process is not None:
+        if self._process :
             self._process.terminate()
         pygame.quit()
 
