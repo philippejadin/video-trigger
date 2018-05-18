@@ -138,8 +138,13 @@ class VideoTrigger(object):
                     if (os.path.isfile(file)):
                         #args = ['hello_video.bin']
                         args = ['omxplayer']
+                        args.extend(['--audio_fifo', '0'])
+                        args.extend(['--video_fifo', '0'])
+                        args.extend(['--audio_queue', '0.4'])
+                        args.extend(['--video_queue', '0.4'])
+                        args.extend(['--threshold', '0'])
+                        args.append('--no-osd')
                         args.append(file)
-                        args.append('--audio_fifo 0 --video_fifo 0 --audio_queue 0.4 --video_queue 0.4 --no-osd')
                         self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
                     else:
                         self._debug('File not found ' + file)
@@ -163,7 +168,10 @@ class VideoTrigger(object):
                         args = ['omxplayer']
                         args.extend(['--audio_fifo', '0'])
                         args.extend(['--video_fifo', '0'])
-                        #--video_fifo 0 --audio_queue 0.4 --video_queue 0.4 --no-osd")
+                        args.extend(['--audio_queue', '0.4'])
+                        args.extend(['--video_queue', '0.4'])
+                        args.extend(['--threshold', '0'])
+                        args.append('--no-osd')
                         args.append("--loop")
                         args.append(file)
                         
@@ -194,6 +202,8 @@ class VideoTrigger(object):
         self._running = False
         if self._process :
             self._process.terminate()
+            
+        subprocess.call(['pkill', '-9', 'omxplayer'])
         pygame.quit()
 
     def signal_quit(self, signal, frame):
