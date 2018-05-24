@@ -18,8 +18,6 @@ import subprocess
 import pygame
 
 
-# - Added a slave mode where video are being started from an arduino using serial
-
 class VideoTrigger(object):
 
     def __init__(self, config_path):
@@ -34,8 +32,11 @@ class VideoTrigger(object):
  
         self._debug_enabled = self._config.getboolean('video_trigger', 'debug')
               
-        self._process = False
+        
         self._running = False
+        self._process_omxplayer = False
+        self._process_hello_video = False
+        self._process_audio = False
         self._is_playing = False
         self._is_showing = False
         self._text_pos = 20
@@ -71,7 +72,7 @@ class VideoTrigger(object):
         try:
             self._serial = serial.Serial('/dev/ttyACM0',9600)
         except:
-            self._print_text('ERROR : Cannot open serial line')
+            self._print_text('ERROR : Cannot open serial line, exiting in 5 seconds')
             time.sleep(5)
             self.quit()
         
@@ -98,7 +99,7 @@ class VideoTrigger(object):
    
     
     def _print_text(self, message):
-        text = self._small_font.render(message, 1, (255,255,255))
+        text = self._small_font.render(message, 1, self._fgcolor)
         w,h = self._screen.get_size()
         self._text_pos = self._text_pos + 20
         if (self._text_pos > h):
@@ -108,19 +109,19 @@ class VideoTrigger(object):
         pygame.display.update()
     
     def _stop(self):
-        if self._is_playing :
+        #stop omxplayer
+        if self._process_omxplayer :
+            self._process_omxplayer.terminate()
             subprocess.call(['pkill', '-9', 'omxplayer'])
         
-        if self._process :
-                        self._process.terminate()
-                        
-        self.is_playing = False
+        #stop hello video
+        if self._process_hello_video :
+            self._process_hello_video.terminate()
         
-        #if self._is_showing :
-            #self._screen.fill(self._bgcolor)
-            #pygame.display.update()
+        #stop aplay
+        if self._process_audio :
+            self._process_audio.terminate()
         
-        #self._is_showing = False
             
    
 
@@ -128,6 +129,7 @@ class VideoTrigger(object):
     def run(self):
         """Main program loop.  Will never return!"""
         self._debug('Video Trigger v1')
+        self._debug('Debug enabled')
         
         
         while self._running:
@@ -136,78 +138,79 @@ class VideoTrigger(object):
                 command = str(self._serial.readline())
                 self._debug('Serial command received : ' + command.strip())
                 
-                if "play" in command :
+                items = command.split(" ")
+                action = items[0].strip()
+                
+                if (action == "play") or (action == "loop") :
                     
                     # En fonction de l'extension du fichier, si mp4 utiliser omxplayer,
                     # si h264 utiliser hello video
                     # si wav lancer le son
                     # si png afficher l'image
                     
-                    # tester synchro video et son et vitesse lecture simulatnée depuis clé usb
+                    # tester synchro video et son et vitesse lecture simulatane depuis cle usb
                     
                     
                     # kill previous process
                     self._stop()
                     
                     # get filename
-                    items = command.split(" ")
+                    #items = command.split(" ")
                     # check the file exists and play it else error
                     file = "/home/pi/" + items[1]
                     file = file.strip()
+                    
+                    filename, file_extension = os.path.splitext(file)
                     
                     self._debug('Playing : ' + file)
                     
                     self._is_playing = True
                     
                     if (os.path.isfile(file)):
-                        args = ['hello_video.bin']
-                        #args = ['omxplayer']
-                        #args.extend(['--audio_fifo', '0'])
-                        #args.extend(['--video_fifo', '0'])
-                        #args.extend(['--audio_queue', '0.4'])
-                        #args.extend(['--video_queue', '0.4'])
-                        #args.extend(['--threshold', '0'])
-                        #args.append('--no-osd')
-                        args.append(file)
-                        self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                        # use omxplayer
+                        if (file_extension == '.mp4'):
+                            args = ['omxplayer']
+                            args.extend(['--audio_fifo', '0'])
+                            args.extend(['--video_fifo', '0'])
+                            args.extend(['--audio_queue', '0.4'])
+                            args.extend(['--video_queue', '0.4'])
+                            args.extend(['--threshold', '0'])
+                            args.append('--no-osd')
+                            
+                            if (action == 'loop'):
+                                args.append('--loop')
                         
-                        self._is_playing = True
+                            args.append(file)
+                            self._process_omxplayer = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                            self._is_playing_omxplayer = True
+                            
+                        # use hello video
+                        elif (file_extension == '.h264'):
+                            args = ['hello_video.bin']
+                            if (action == 'loop'):
+                                args.append('--loop')
+                                
+                            args.append(file)
+                            self._process_hello_video= subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                            self._is_playing_hello_video = True
+                        
+                        # use audio player
+                        elif (file_extension == '.wav'):
+                            args = ['aplay']
+                            args.append(file)
+                            self._process_audio = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                            self._is_playing_audio = True
+                        
+                        else:
+                            self._print_text('Unknown file extension : ' + file_extension)
+                            time.sleep(5)
+                            
+                            
                     else:
                         self._debug('File not found ' + file)
                         time.sleep(1)
                         
-                if "loop" in command :
-                    self._stop()
                 
-                    
-                    
-                    # get filename
-                    items = command.split(" ")
-                    # check the file exists and play it else error
-                    file = "/home/pi/" + items[1]
-                    file = file.strip()
-                    
-                    self._debug('Playing : ' + file)
-                    
-                    if (os.path.isfile(file)):
-                        args = ['hello_video.bin']
-                        
-                        #args = ['omxplayer']
-                        #args.extend(['--audio_fifo', '0'])
-                        #args.extend(['--video_fifo', '0'])
-                        #args.extend(['--audio_queue', '0.4'])
-                        #args.extend(['--video_queue', '0.4'])
-                        #args.extend(['--threshold', '0'])
-                        #args.append('--no-osd')
-                        args.append("--loop")
-                        args.append(file)
-                        
-                        self._process = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
-                        
-                        self._is_playing = True
-                    else:
-                        self._debug('File not found ' + file)
-                        time.sleep(1)
                     
                     
                 if "stop" in command :
@@ -250,10 +253,7 @@ class VideoTrigger(object):
     def quit(self):
         """Shut down the program"""
         self._running = False
-        if self._process :
-            self._process.terminate()
-            
-        subprocess.call(['pkill', '-9', 'omxplayer'])
+        self._stop()
         pygame.quit()
 
     def signal_quit(self, signal, frame):
