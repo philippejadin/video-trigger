@@ -58,6 +58,7 @@ class VideoTrigger(object):
                                              .split())
         
         
+        self._media_path = self._config.get('video_trigger', 'media_path')
         
         pygame.mouse.set_visible(False)
         size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
@@ -154,7 +155,7 @@ class VideoTrigger(object):
                     
                     # get filename
                     # check the file exists and play it else error
-                    file = "/home/pi/" + items[1].strip()
+                    file = self._media_path + items[1].strip()
                     
                     filename, file_extension = os.path.splitext(file)
                     
