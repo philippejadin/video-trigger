@@ -109,19 +109,23 @@ class VideoTrigger(object):
         pygame.display.update()
     
     def _stop(self):
-        #stop omxplayer
+        # stop omxplayer
         if self._process_omxplayer :
             self._process_omxplayer.terminate()
             subprocess.call(['pkill', '-9', 'omxplayer'])
         
-        #stop hello video
+        # stop hello video
         if self._process_hello_video :
             self._process_hello_video.terminate()
         
-        #stop aplay
+        # stop aplay
         if self._process_audio :
             self._process_audio.terminate()
         
+        # clear image
+        if self._is_showing :
+            self._blank_screen()
+            self._is_showing = False
             
    
 
@@ -141,24 +145,16 @@ class VideoTrigger(object):
                 items = command.split(" ")
                 action = items[0].strip()
                 
-                if (action == "play") or (action == "loop") :
-                    
-                    # En fonction de l'extension du fichier, si mp4 utiliser omxplayer,
-                    # si h264 utiliser hello video
-                    # si wav lancer le son
-                    # si png afficher l'image
-                    
+                # We handle loop and play similarly, the difference is just a single argument on the command line players
+                if (action == "play") or (action == "loop") :                                           
                     # tester synchro video et son et vitesse lecture simulatane depuis cle usb
-                    
-                    
+                                       
                     # kill previous process
                     self._stop()
                     
                     # get filename
-                    #items = command.split(" ")
                     # check the file exists and play it else error
-                    file = "/home/pi/" + items[1]
-                    file = file.strip()
+                    file = "/home/pi/" + items[1].strip()
                     
                     filename, file_extension = os.path.splitext(file)
                     
@@ -167,7 +163,8 @@ class VideoTrigger(object):
                     self._is_playing = True
                     
                     if (os.path.isfile(file)):
-                        # use omxplayer
+                        
+                        # use omxplayer for mp4
                         if (file_extension == '.mp4'):
                             args = ['omxplayer']
                             args.extend(['--audio_fifo', '0'])
@@ -184,7 +181,7 @@ class VideoTrigger(object):
                             self._process_omxplayer = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
                             self._is_playing_omxplayer = True
                             
-                        # use hello video
+                        # use hello video for h264
                         elif (file_extension == '.h264'):
                             args = ['hello_video.bin']
                             if (action == 'loop'):
@@ -194,12 +191,19 @@ class VideoTrigger(object):
                             self._process_hello_video= subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
                             self._is_playing_hello_video = True
                         
-                        # use audio player
+                        # use audio player for wav
                         elif (file_extension == '.wav'):
                             args = ['aplay']
                             args.append(file)
                             self._process_audio = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
                             self._is_playing_audio = True
+                        
+                        # use pygame for png's
+                        elif (file_extension == '.png'):
+                            image = pygame.image.load(file)
+                            self._screen.blit(image, (0,0))
+                            pygame.display.update()
+                            self._is_showing = True
                         
                         else:
                             self._print_text('Unknown file extension : ' + file_extension)
@@ -217,27 +221,7 @@ class VideoTrigger(object):
                     self._debug('Stoping')
                     self._stop()
                     
-                if "image" in command :
-                    if self._is_showing :
-                        subprocess.call(['pkill', '-9', 'omxplayer'])
-                        self.is_playing = False
-                    
-                    # get filename
-                    items = command.split(" ")
-                    # check the file exists and play it else error
-                    file = "/home/pi/" + items[1]
-                    file = file.strip()
-                    
-                    self._debug('Showing : ' + file)
-                    
-                    if (os.path.isfile(file)):
-                        image = pygame.image.load(file)
-                        self._screen.blit(image, (0,0))
-                        pygame.display.update()
-                        self._is_showing = True
-                    else:
-                        self._debug('File not found ' + file)
-                        time.sleep(1)
+                
                     
             
             # Event handling for key press, if keyboard control is enabled
