@@ -122,10 +122,10 @@ class VideoTrigger(object):
         if self._process_audio :
             self._process_audio.terminate()
         
-        # clear image
-        if self._is_showing :
-            self._blank_screen()
-            self._is_showing = False
+        # clear image, not suitable ?
+        #if self._is_showing :
+        #    self._blank_screen()
+        #    self._is_showing = False
             
    
 
@@ -217,9 +217,13 @@ class VideoTrigger(object):
                 
                     
                     
-                if "stop" in command :
+                if action == "stop":
                     self._debug('Stoping')
                     self._stop()
+                    
+                if action == "clearscreen":
+                    self._debug('Clearing screen')
+                    self._blank_screen()
                     
                 
                     
