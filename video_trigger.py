@@ -105,6 +105,7 @@ class VideoTrigger(object):
         self._text_pos = self._text_pos + 20
         if (self._text_pos > h):
             self._text_pos = 20
+            self._blank_screen()
             
         self._screen.blit(text, (20,self._text_pos))
         pygame.display.update()
@@ -120,8 +121,8 @@ class VideoTrigger(object):
             self._process_hello_video.terminate()
         
         # stop aplay
-        if self._process_audio :
-            self._process_audio.terminate()
+        #if self._process_audio :
+        #   self._process_audio.terminate()
         
         # clear image, not suitable ?
         #if self._is_showing :
@@ -194,7 +195,20 @@ class VideoTrigger(object):
                         
                         # use audio player for wav
                         elif (file_extension == '.wav'):
+                            
+                            # turn off previous sound
+                            if self._process_audio :
+                               self._process_audio.terminate()
+                            
+                            # start playback
                             args = ['aplay']
+                            
+                            # use headphone out:
+                            args.append('-Dhw:0,0')
+                            
+                            # or use hdmi out :
+                            #args.append('-Dhw:0,1')
+                            
                             args.append(file)
                             self._process_audio = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
                             self._is_playing_audio = True
@@ -243,6 +257,9 @@ class VideoTrigger(object):
         """Shut down the program"""
         self._running = False
         self._stop()
+        subprocess.call(['pkill', '-9', 'omxplayer'])
+        subprocess.call(['pkill', '-9', 'hello_video'])
+        subprocess.call(['pkill', '-9', 'aplay'])
         pygame.quit()
 
     def signal_quit(self, signal, frame):
