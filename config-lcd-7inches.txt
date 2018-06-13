@@ -30,6 +30,14 @@ hdmi_mode=2
 hdmi_mode=87
 hdmi_cvt=1024 600 60 3 0 0 0
 
+#screen rotation
+#display_rotate=0 Normal
+#display_rotate=1 90 degrees
+#display_rotate=2 180 degrees
+#display_rotate=3 270 degrees
+
+display_rotate=1
+
 # uncomment to force a HDMI mode rather than DVI. This can make audio work in
 # DMT (computer monitor) modes
 #hdmi_drive=2
