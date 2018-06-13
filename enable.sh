@@ -9,4 +9,7 @@ fi
 echo "Configuring video_trigger to run on start..."
 echo "==========================================="
 cp video_trigger.conf /etc/supervisor/conf.d/
-service supervisor restart
+
+echo "Reboot to enable"
+
+# service supervisor restart
