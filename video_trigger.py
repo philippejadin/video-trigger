@@ -236,7 +236,7 @@ class VideoTrigger(object):
                     self._debug('Stoping')
                     self._stop()
                     
-                if action == "clearscreen":
+                if action == "blank":
                     self._debug('Clearing screen')
                     self._blank_screen()
                     
