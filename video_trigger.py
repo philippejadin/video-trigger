@@ -1,4 +1,6 @@
+# Video Trigger
 # Copyright 2018 Philippe Jadin
+
 # Inspired by adafruit video_looper :
 # Copyright 2015 Adafruit Industries.
 # Author: Tony DiCola
@@ -267,6 +269,11 @@ class VideoTrigger(object):
                     
                 if action == "blank":
                     self._debug('Clearing screen')
+                    self._blank_screen()
+                    
+                if action == "color":
+                    self._debug('Changin screen color')
+                    self._bgcolor = items[1].strip(), items[2].strip(), items[3].strip() #TODO
                     self._blank_screen()
                     
                 
