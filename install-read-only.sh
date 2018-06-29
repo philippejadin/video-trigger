@@ -10,9 +10,6 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 
-sudo bash install.sh
-sudo bash enable.sh
-
 cd /tmp
 wget https://raw.githubusercontent.com/janztec/empc-arpi-linux-readonly/master/install-experimental.sh -O install-experimental.sh
 sudo bash install-experimental.sh
