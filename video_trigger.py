@@ -31,6 +31,8 @@ class VideoTrigger(object):
         self._console_output = self._config.getboolean('video_trigger', 'console_output')
  
         self._debug_enabled = self._config.getboolean('video_trigger', 'debug')
+        
+        self._error_image = self._config.get('video_trigger', 'error_image')
               
         
         self._running = False
@@ -70,15 +72,42 @@ class VideoTrigger(object):
             
         self._blank_screen()   
         
+        self._running  = True
+        
         try:
             self._serial = serial.Serial('/dev/ttyACM0',9600)
         except:
-            self._print_text('ERROR : Cannot open serial line, exiting in 5 seconds')
-            time.sleep(5)
-            self.quit()
+             self._error('ERROR : Cannot open serial line')
+             #time.sleep(5)
+             #self.quit()
+             while(True):
+                 time.sleep(1)
+        
+        
+       
+       
+
+    def _error(self, message):
+        file = self._media_path + self._error_image
+        if (os.path.isfile(file)):
+            image = pygame.image.load(file)
+            self._screen.blit(image, (0,0))
+            pygame.display.update()
+        
+        
+        self._print_text(message)
         
         self._running  = True
-       
+        while (self._running):
+        # Event handling for key press, if keyboard control is enabled
+            if self._keyboard_control:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        # If pressed key is ESC quit program
+                        if event.key == pygame.K_ESCAPE:
+                            self.quit()
+            # Give the CPU some time to do other tasks.
+            time.sleep(0.002)
         
     
     def _debug(self, message):
