@@ -82,8 +82,8 @@ class VideoTrigger(object):
              self._error('ERROR : Cannot open serial line')
              #time.sleep(5)
              #self.quit()
-             while(True):
-                 time.sleep(1)
+             time.sleep(10)
+             self.quit()
         
         
        
@@ -251,14 +251,20 @@ class VideoTrigger(object):
                             pygame.display.update()
                             self._is_showing = True
                         
+                        elif (file_extension == '.jpg'):
+                            image = pygame.image.load(file)
+                            self._screen.blit(image, (0,0))
+                            pygame.display.update()
+                            self._is_showing = True
+                        
                         else:
                             self._print_text('Unknown file extension : ' + file_extension)
                             time.sleep(5)
                             
                             
                     else:
-                        self._debug('File not found ' + file)
-                        time.sleep(1)
+                        self._print_text('File not found ' + file)
+                        time.sleep(5)
                         
                 
                     
