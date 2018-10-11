@@ -41,6 +41,7 @@ class VideoTrigger(object):
         self._process_omxplayer = False
         self._process_hello_video = False
         self._process_audio = False
+        self._process_image = False
         self._is_playing = False
         self._is_showing = False
         self._text_pos = 20
@@ -64,8 +65,11 @@ class VideoTrigger(object):
         
         self._media_path = self._config.get('video_trigger', 'media_path')
         
+        self._image_cache = {}
+        
         pygame.mouse.set_visible(False)
         size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        
         
         if self._config.getboolean('video_trigger', 'full_screen'):
             self._screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
@@ -79,11 +83,9 @@ class VideoTrigger(object):
         try:
             self._serial = serial.Serial('/dev/ttyACM0',9600)
         except:
-             self._error('ERROR : Cannot open serial line')
-             #time.sleep(5)
-             #self.quit()
-             while(True):
-                 time.sleep(1)
+             self._error('Error : Cannot open serial line')
+             time.sleep(10)
+             self.quit()
         
         
        
@@ -96,26 +98,21 @@ class VideoTrigger(object):
             self._screen.blit(image, (0,0))
             pygame.display.update()
         
-        
         self._print_text(message)
         
-        self._running  = True
-        while (self._running):
-        # Event handling for key press, if keyboard control is enabled
-            if self._keyboard_control:
-                for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
-                        # If pressed key is ESC quit program
-                        if event.key == pygame.K_ESCAPE:
-                            self.quit()
-            # Give the CPU some time to do other tasks.
-            time.sleep(0.002)
+        
+        
         
     
     def _debug(self, message):
         if self._debug_enabled: 
             self._print_console(message)
             self._print_text(message)
+            
+    def _warning(self, message):
+        self._print_console(message)
+        self._print_text(message)
+        time.sleep(1)
         
 
     def _print_console(self, message):
@@ -160,8 +157,8 @@ class VideoTrigger(object):
         #    self._blank_screen()
         #    self._is_showing = False
             
-   
 
+        
     
     def run(self):
         """Main program loop.  Will never return!"""
@@ -245,20 +242,25 @@ class VideoTrigger(object):
                             self._is_playing_audio = True
                         
                         # use pygame for png's
-                        elif (file_extension == '.png'):
-                            image = pygame.image.load(file)
+                        
+                        elif (file_extension == '.png') or (file_extension == '.jpg') :
+                            if not file in self._image_cache:
+                                self._image_cache[file] = pygame.image.load(file).convert()
+                            image = self._image_cache[file] 
                             self._screen.blit(image, (0,0))
                             pygame.display.update()
                             self._is_showing = True
+                            
+                        
                         
                         else:
-                            self._print_text('Unknown file extension : ' + file_extension)
+                            self._warning('Unknown file extension : ' + file_extension)
                             time.sleep(5)
                             
                             
                     else:
-                        self._debug('File not found ' + file)
-                        time.sleep(1)
+                        self._warning('File not found ' + file)
+                        time.sleep(5)
                         
                 
                     
