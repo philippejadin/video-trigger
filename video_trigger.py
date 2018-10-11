@@ -253,6 +253,12 @@ class VideoTrigger(object):
                             
                         
                         
+                        elif (file_extension == '.jpg'):
+                            image = pygame.image.load(file)
+                            self._screen.blit(image, (0,0))
+                            pygame.display.update()
+                            self._is_showing = True
+                        
                         else:
                             self._warning('Unknown file extension : ' + file_extension)
                             time.sleep(5)
