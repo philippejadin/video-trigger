@@ -16,6 +16,7 @@ import signal
 import time
 import serial
 import subprocess
+import logging
 
 import pygame
 
@@ -26,6 +27,8 @@ class VideoTrigger(object):
         """Create an instance of the main video trigger application class. Must
         pass path to a valid video trigger ini configuration file.
         """
+        
+        
         # Load the configuration.
         self._config = ConfigParser.SafeConfigParser()
         if len(self._config.read(config_path)) == 0:
@@ -35,7 +38,12 @@ class VideoTrigger(object):
         self._debug_enabled = self._config.getboolean('video_trigger', 'debug')
         
         self._error_image = self._config.get('video_trigger', 'error_image')
-              
+        
+        self._log_to_file = self._config.get('video_trigger', 'log_to_file')
+        
+        if (self._log_to_file):
+            logging.basicConfig(filename='video_trigger.log',level=logging.DEBUG,format='%(asctime)s : %(levelname)s : %(message)s')
+            
         
         self._running = False
         self._process_omxplayer = False
@@ -80,11 +88,14 @@ class VideoTrigger(object):
         
         self._running  = True
         
+        self._debug('Video Trigger v2')
+        self._debug('Debug enabled')
+        
         try:
             self._serial = serial.Serial('/dev/ttyACM0',9600)
         except:
              self._error('Error : Cannot open serial line')
-             time.sleep(10)
+             time.sleep(5)
              self.quit()
         
         
@@ -92,6 +103,7 @@ class VideoTrigger(object):
        
 
     def _error(self, message):
+        logging.error(message);
         file = self._media_path + self._error_image
         if (os.path.isfile(file)):
             image = pygame.image.load(file)
@@ -105,11 +117,13 @@ class VideoTrigger(object):
         
     
     def _debug(self, message):
-        if self._debug_enabled: 
+        if self._debug_enabled:
+            logging.debug(message);
             self._print_console(message)
             self._print_text(message)
             
     def _warning(self, message):
+        logging.warning(message);
         self._print_console(message)
         self._print_text(message)
         time.sleep(1)
@@ -162,8 +176,6 @@ class VideoTrigger(object):
     
     def run(self):
         """Main program loop.  Will never return!"""
-        self._debug('Video Trigger v1')
-        self._debug('Debug enabled')
         
         
         while self._running:
