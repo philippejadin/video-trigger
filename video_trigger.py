@@ -42,7 +42,7 @@ class VideoTrigger(object):
         self._log_to_file = self._config.get('video_trigger', 'log_to_file')
         
         if (self._log_to_file):
-            logging.basicConfig(filename='video_trigger.log',level=logging.DEBUG,format='%(asctime)s : %(levelname)s : %(message)s')
+            logging.basicConfig(filename='/home/pi/video-trigger/video_trigger.log',level=logging.DEBUG,format='%(asctime)s : %(levelname)s : %(message)s')
             
         
         self._running = False
