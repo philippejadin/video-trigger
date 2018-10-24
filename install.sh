@@ -32,3 +32,6 @@ echo "=========================="
 cp video_trigger.service /lib/systemd/system/
 systemctl daemon-reload
 systemctl enable video_trigger.service
+
+# enable logs
+mkdir -p /var/log/journal
