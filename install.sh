@@ -9,10 +9,6 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
-echo "Installing dependencies..."
-echo "=========================="
-apt-get update
-apt-get -y install supervisor
 
 echo "Installing hello_video..."
 echo "========================="
@@ -26,7 +22,13 @@ rm -rf pi_hello_video
 
 
 
-
 echo "Copy config file..."
 echo "=========================="
 cp video_trigger.ini /boot/video_trigger.ini
+
+
+echo "Add to systemd"
+echo "=========================="
+cp video_trigger.service /lib/systemd/system/
+systemctl daemon-reload
+systemctl enable video_trigger.service
