@@ -39,11 +39,7 @@ class VideoTrigger(object):
         
         self._error_image = self._config.get('video_trigger', 'error_image')
         
-        self._log_to_file = self._config.get('video_trigger', 'log_to_file')
-        
-        if (self._log_to_file):
-            logging.basicConfig(filename='/home/pi/video-trigger/video_trigger.log',level=logging.DEBUG,format='%(asctime)s : %(levelname)s : %(message)s')
-            
+
         
         self._running = False
         self._process_omxplayer = False

@@ -1,11 +1,13 @@
 [Unit]
 Description=Video trigger
-
+After=multi-user.target
+Wants=multi-user.target
 
 [Service]
 User=pi
-Environment=DISPLAY=:0
-ExecStart=/usr/bin/python /home/pi/video-trigger/video_trigger.py
+#Environment=DISPLAY=:0
+ExecStart=/usr/bin/python -u /home/pi/video-trigger/video_trigger.py
+#Type=forking
 
 [Install]
-WantedBy=graphical.target
+WantedBy=multi-user.target

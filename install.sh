@@ -27,11 +27,8 @@ echo "=========================="
 cp video_trigger.ini /boot/video_trigger.ini
 
 
-echo "Add to systemd"
-echo "=========================="
-cp video_trigger.service /lib/systemd/system/
-systemctl daemon-reload
-systemctl enable video_trigger.service
 
 # enable logs
+echo "Enable persistent logs..."
+echo "=========================="
 mkdir -p /var/log/journal
