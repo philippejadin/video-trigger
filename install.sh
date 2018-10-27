@@ -29,8 +29,12 @@ make install
 cd ../..
 rm -rf pi_hello_video
 
-echo "Setup audio to line out"
+echo "Setup audio to line out and correct level"
+echo "========================================="
 amixer cset numid=3 1
+amixer set PCM -- 95%
+alsactl store
+
 
 echo "Copy config file..."
 echo "=========================="
