@@ -10,11 +10,13 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 echo "Install packages"
+echo "================"
 apt install git python-pip python-pygame
 pip install pyserial
 
 echo "Setup automount of media stick"
-echo LABEL=MEDIA /media/pi/MEDIA vfat32 defaults 0 0 >> /etc/fstab
+echo "=============================="
+echo LABEL=MEDIA /media/pi/MEDIA vfat defaults 0 0 >> /etc/fstab
 mkdir -p /media/pi/MEDIA
 
 echo "Installing hello_video..."
