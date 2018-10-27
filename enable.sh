@@ -11,6 +11,6 @@ fi
 
 echo "Add to systemd and enable"
 echo "=========================="
-cp video_trigger.service /lib/systemd/system/
+cp video-trigger.service /lib/systemd/system/
 systemctl daemon-reload
-systemctl enable video_trigger.service
+systemctl enable video-trigger.service

@@ -4,9 +4,7 @@ After=multi-user.target
 Requires=multi-user.target
 
 [Service]
-#User=root
-#Environment=DISPLAY=:0
-ExecStart=/usr/bin/python -u /home/pi/video-trigger/video_trigger.py 2>&1
+ExecStart=/usr/bin/python -u /home/pi/video-trigger/video-trigger.py 2>&1
 Type=idle
 
 [Install]

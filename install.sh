@@ -29,7 +29,8 @@ make install
 cd ../..
 rm -rf pi_hello_video
 
-
+echo "Setup audio to line out"
+amixer cset numid=3 1
 
 echo "Copy config file..."
 echo "=========================="

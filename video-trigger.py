@@ -33,11 +33,12 @@ class VideoTrigger(object):
         self._config = ConfigParser.SafeConfigParser()
         if len(self._config.read(config_path)) == 0:
             raise RuntimeError('Failed to find configuration file at {0}, is the application properly installed?'.format(config_path))
-        self._console_output = self._config.getboolean('video_trigger', 'console_output')
- 
-        self._debug_enabled = self._config.getboolean('video_trigger', 'debug')
         
-        self._error_image = self._config.get('video_trigger', 'error_image')
+        self._console_output = self._config.getboolean('video-trigger', 'console_output')
+ 
+        self._debug_enabled = self._config.getboolean('video-trigger', 'debug')
+        
+        self._error_image = self._config.get('video-trigger', 'error_image')
         
 
         
@@ -50,7 +51,7 @@ class VideoTrigger(object):
         self._is_showing = False
         self._text_pos = 20
         
-        self._keyboard_control = self._config.getboolean('video_trigger', 'keyboard_control')
+        self._keyboard_control = self._config.getboolean('video-trigger', 'keyboard_control')
         
         # Initialize pygame and display a blank screen.
         pygame.display.init()
@@ -59,15 +60,15 @@ class VideoTrigger(object):
         self._small_font = pygame.font.Font(None, 20)
         self._big_font   = pygame.font.Font(None, 250)
         
-        self._bgcolor = map(int, self._config.get('video_trigger', 'bgcolor') \
+        self._bgcolor = map(int, self._config.get('video-trigger', 'bgcolor') \
                                              .translate(None, ',') \
                                              .split())
-        self._fgcolor = map(int, self._config.get('video_trigger', 'fgcolor') \
+        self._fgcolor = map(int, self._config.get('video-trigger', 'fgcolor') \
                                              .translate(None, ',') \
                                              .split())
         
         
-        self._media_path = self._config.get('video_trigger', 'media_path')
+        self._media_path = self._config.get('video-trigger', 'media_path')
         
         self._image_cache = {}
         
@@ -75,7 +76,7 @@ class VideoTrigger(object):
         size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         
         
-        if self._config.getboolean('video_trigger', 'full_screen'):
+        if self._config.getboolean('video-trigger', 'full_screen'):
             self._screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
         else:
             self._screen = pygame.display.set_mode(size, pygame.RESIZABLE)
@@ -246,7 +247,7 @@ class VideoTrigger(object):
                             #args.append('-Dhw:0,1')
                             
                             args.append(file)
-                            self._process_audio = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), close_fds=True)
+                            self._process_audio = subprocess.Popen(args, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'), close_fds=True)
                             self._is_playing_audio = True
                         
                         # use pygame for png's
@@ -324,10 +325,12 @@ def dont_quit(signal, frame):
 
 # Main entry point.
 if __name__ == '__main__':
+    # disable sighup handling else systemd will kill the script immediately on start :
     signal.signal(signal.SIGHUP, dont_quit)
+
     print('Starting Video Trigger.')
     # Default config path to /boot.
-    config_path = '/boot/video_trigger.ini'
+    config_path = '/boot/video-trigger.ini'
     
     
     # Create video trigger.
@@ -335,8 +338,8 @@ if __name__ == '__main__':
 
 
     # Configure signal handlers to quit on TERM or INT signal.
-    # signal.signal(signal.SIGTERM, videotrigger.signal_quit)
-    # signal.signal(signal.SIGINT, videotrigger.signal_quit)
+    signal.signal(signal.SIGTERM, videotrigger.signal_quit)
+    signal.signal(signal.SIGINT, videotrigger.signal_quit)
     # Run the main loop.
     videotrigger.run()
     
