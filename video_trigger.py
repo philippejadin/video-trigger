@@ -16,7 +16,7 @@ import signal
 import time
 import serial
 import subprocess
-import logging
+
 
 import pygame
 
@@ -99,7 +99,7 @@ class VideoTrigger(object):
        
 
     def _error(self, message):
-        logging.error(message);
+        print(message);
         file = self._media_path + self._error_image
         if (os.path.isfile(file)):
             image = pygame.image.load(file)
@@ -114,12 +114,12 @@ class VideoTrigger(object):
     
     def _debug(self, message):
         if self._debug_enabled:
-            logging.debug(message);
+            print(message);
             self._print_console(message)
             self._print_text(message)
             
     def _warning(self, message):
-        logging.warning(message);
+        print(message);
         self._print_console(message)
         self._print_text(message)
         time.sleep(1)
@@ -318,20 +318,25 @@ class VideoTrigger(object):
         """Shut down the program, meant to by called by signal handler."""
         self.quit()
 
+def dont_quit(signal, frame):
+     print 'Catch signal {}'.format(signal) 
+
 
 # Main entry point.
 if __name__ == '__main__':
+    signal.signal(signal.SIGHUP, dont_quit)
     print('Starting Video Trigger.')
     # Default config path to /boot.
     config_path = '/boot/video_trigger.ini'
-    # Override config path if provided as parameter.
-    if len(sys.argv) == 2:
-        config_path = sys.argv[1]
+    
+    
     # Create video trigger.
     videotrigger = VideoTrigger(config_path)
+
+
     # Configure signal handlers to quit on TERM or INT signal.
-    signal.signal(signal.SIGTERM, videotrigger.signal_quit)
-    signal.signal(signal.SIGINT, videotrigger.signal_quit)
+    # signal.signal(signal.SIGTERM, videotrigger.signal_quit)
+    # signal.signal(signal.SIGINT, videotrigger.signal_quit)
     # Run the main loop.
     videotrigger.run()
     
