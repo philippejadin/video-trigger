@@ -9,6 +9,13 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
+echo "Install packages"
+apt install git python-pip python-pygame
+pip install pyserial
+
+echo "Setup automount of media stick"
+echo LABEL=MEDIA /media/pi/MEDIA vfat32 defaults 0 0 > /etc/fstab
+mkdir -p /media/pi/MEDIA
 
 echo "Installing hello_video..."
 echo "========================="
@@ -25,6 +32,7 @@ rm -rf pi_hello_video
 echo "Copy config file..."
 echo "=========================="
 cp video_trigger.ini /boot/video_trigger.ini
+
 
 
 
