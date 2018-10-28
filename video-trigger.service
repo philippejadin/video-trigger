@@ -6,6 +6,8 @@ Requires=multi-user.target
 [Service]
 ExecStart=/usr/bin/python -u /home/pi/video-trigger/video-trigger.py 2>&1
 Type=idle
+Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

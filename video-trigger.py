@@ -92,7 +92,7 @@ class VideoTrigger(object):
             self._serial = serial.Serial('/dev/ttyACM0',9600)
         except:
              self._error('Error : Cannot open serial line')
-             time.sleep(5)
+             time.sleep(15)
              self.quit()
         
         
